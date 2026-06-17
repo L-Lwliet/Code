@@ -1,0 +1,36 @@
+#include<iostream>
+using namespace std;
+
+int main(){
+
+    int n, remainder;
+    char choice;
+
+    do{
+
+      int   binary = 0, a = 1;
+
+      cout<<"Enter decimal number: ";
+      cin>>n;
+
+
+      while(n>0){
+
+        remainder = n%2;
+        n = n / 2;//n/=2
+        binary = binary + (remainder*a);
+        a = a*10;//a*=10
+
+    }
+
+    cout<<"The binary number is: "<<binary<<endl;
+
+    cout<<"Do you want to try again?Y/N: ";
+    cin>>choice;
+
+    }while(choice == 'Y' || choice == 'y');
+
+
+
+return 0;
+}

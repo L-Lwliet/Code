@@ -1,0 +1,1 @@
+cd "e:\Code\C\" ; if ($?) { gcc FileIOStr.c -o FileIOStr } ; if ($?) { .\FileIOStr }

@@ -1,0 +1,177 @@
+
+<style>
+#erd { padding: 0.5rem 0; }
+#erd svg { width: 100%; }
+</style>
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#1a1a2e' : '#E6F1FB',
+    primaryBorderColor: dark ? '#378ADD' : '#185FA5',
+    primaryTextColor: dark ? '#B5D4F4' : '#042C53',
+    secondaryColor: dark ? '#1a2e1a' : '#EAF3DE',
+    tertiaryColor: dark ? '#2e1a2e' : '#EEEDFE',
+  },
+});
+const diagram = `erDiagram
+  AspNetUsers {
+    uniqueidentifier Id PK
+    nvarchar Email
+    nvarchar PasswordHash
+    nvarchar PhoneNumber
+    bit EmailConfirmed
+    bit IsActive
+    datetime2 CreatedAt
+    datetime2 UpdatedAt
+  }
+  AspNetRoles {
+    uniqueidentifier Id PK
+    nvarchar Name
+    nvarchar NormalizedName
+  }
+  AspNetUserRoles {
+    uniqueidentifier UserId PK,FK
+    uniqueidentifier RoleId PK,FK
+  }
+  Patients {
+    int PatientId PK
+    uniqueidentifier UserId FK
+    nvarchar FullName
+    date DateOfBirth
+    nvarchar Gender
+    nvarchar BloodType
+    nvarchar Address
+    nvarchar EmergencyContact
+    datetime2 CreatedAt
+  }
+  Doctors {
+    int DoctorId PK
+    uniqueidentifier UserId FK
+    nvarchar FullName
+    int DepartmentId FK
+    nvarchar Specialization
+    nvarchar LicenseNumber
+    nvarchar Biography
+    bit IsAvailable
+    datetime2 CreatedAt
+  }
+  Admins {
+    int AdminId PK
+    uniqueidentifier UserId FK
+    nvarchar FullName
+    nvarchar Position
+    datetime2 CreatedAt
+  }
+  Departments {
+    int DepartmentId PK
+    nvarchar Name
+    nvarchar Description
+    int HeadDoctorId FK
+    bit IsActive
+    datetime2 CreatedAt
+  }
+  DoctorSchedules {
+    int ScheduleId PK
+    int DoctorId FK
+    int DayOfWeek
+    time StartTime
+    time EndTime
+    int SlotDurationMinutes
+    bit IsActive
+  }
+  Appointments {
+    int AppointmentId PK
+    int PatientId FK
+    int DoctorId FK
+    datetime2 AppointmentDate
+    int ScheduleId FK
+    nvarchar Status
+    nvarchar Reason
+    nvarchar Notes
+    datetime2 CreatedAt
+    datetime2 UpdatedAt
+  }
+  Prescriptions {
+    int PrescriptionId PK
+    int AppointmentId FK
+    int DoctorId FK
+    int PatientId FK
+    nvarchar Diagnosis
+    nvarchar Medications
+    nvarchar Instructions
+    datetime2 IssuedAt
+    date ValidUntil
+  }
+  Notifications {
+    int NotificationId PK
+    uniqueidentifier UserId FK
+    nvarchar Title
+    nvarchar Message
+    nvarchar Type
+    bit IsRead
+    datetime2 CreatedAt
+    datetime2 ReadAt
+  }
+  AuditLogs {
+    int LogId PK
+    uniqueidentifier UserId FK
+    nvarchar Action
+    nvarchar EntityName
+    nvarchar EntityId
+    nvarchar OldValues
+    nvarchar NewValues
+    datetime2 Timestamp
+    nvarchar IpAddress
+  }
+
+  AspNetUsers ||--o{ AspNetUserRoles : "has roles"
+  AspNetRoles ||--o{ AspNetUserRoles : "assigned via"
+  AspNetUsers ||--o| Patients : "profile"
+  AspNetUsers ||--o| Doctors : "profile"
+  AspNetUsers ||--o| Admins : "profile"
+  AspNetUsers ||--o{ Notifications : "receives"
+  AspNetUsers ||--o{ AuditLogs : "generates"
+  Departments ||--o{ Doctors : "belongs to"
+  Doctors ||--o{ DoctorSchedules : "has"
+  Doctors ||--o{ Appointments : "sees"
+  Patients ||--o{ Appointments : "books"
+  Appointments ||--o{ Prescriptions : "produces"
+  DoctorSchedules ||--o{ Appointments : "slotted via"
+`;
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>

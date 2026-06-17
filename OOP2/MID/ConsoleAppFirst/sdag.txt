@@ -1,0 +1,20 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleAppFirst
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Account hikkisAccount = new Account("Hikki's Account", 100.00);
+            Console.WriteLine(hikkisAccount.Name);
+            hikkisAccount.display();
+            hikkisAccount.deposit(20);
+            hikkisAccount.display();
+        }
+    }
+}
